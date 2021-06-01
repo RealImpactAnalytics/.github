@@ -1,0 +1,85 @@
+# Syntax reference: https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions
+# This uses organisation level Secrets following https://docs.github.com/en/free-pro-team@latest/actions/reference/encrypted-secrets#creating-encrypted-secrets-for-an-organization
+# Secrets list available at https://github.com/organizations/RealImpactAnalytics/settings/secrets/actions
+# Follow https://github.com/marketplace/actions/docker-setup-buildx
+# Slack incoming webhook https://hooks.slack.com/services/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
+name: Publish
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  buildx:
+    runs-on: Ubuntu-20.04
+    steps:
+      - name: Notify slack success
+        if: success()
+        id: sc-user-profile-start # IMPORTANT: reference this step ID value in future Slack steps
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: sc-tc-alert
+          status: STARTING
+          color: warning
+
+      - name: Generate build number
+        uses: einaregilsson/build-number@v3
+        with:
+          token: ${{secrets.github_token}}
+
+      - name: Print new build number
+        run: echo "Build number is $BUILD_NUMBER"
+
+      - name: set environment variables
+        uses: allenevans/set-env@v2.0.0
+        with:
+          DOCKER_REGISTRY: riaktr
+          DOCKER_TAG: $default-branch
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.FACTORY_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.FACTORY_DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+        id: buildx
+        with:
+          install: true
+          driver-opts: |
+            image=moby/buildkit:master
+
+      - name: Build image
+        run: make build
+
+      - name: Publish image
+        run: make publish
+
+      - name: Notify slack success
+        if: success()
+        id: sc-user-profil-success # IMPORTANT: reference this step ID value in future Slack steps
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: sc-tc-alert
+          status: FINISHED
+          color: good
+
+      - name: Notify slack failure
+        if: failure()
+        id: sc-user-profile-failure # IMPORTANT: reference this step ID value in future Slack steps
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: sc-tc-alert
+          status: FAILED
+          color: danger
