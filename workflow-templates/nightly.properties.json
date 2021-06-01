@@ -1,0 +1,8 @@
+{
+    "name": "Smart CAPEX Nightly Build Workflow",
+    "description": "Used for Smart CAPEX Nightly build configurations",
+    "iconName": "riaktr",
+    "categories": [
+        "Smart CAPEX"
+    ]
+}

@@ -1,0 +1,8 @@
+{
+    "name": "Smart CAPEX PR Build Workflow",
+    "description": "Used for Smart CAPEX PR build configurations",
+    "iconName": "riaktr",
+    "categories": [
+        "Smart CAPEX"
+    ]
+}

@@ -1,0 +1,8 @@
+{
+    "name": "Smart CAPEX Publish Workflow",
+    "description": "Used for Smart CAPEX Publish configurations",
+    "iconName": "riaktr",
+    "categories": [
+        "Smart CAPEX"
+    ]
+}
